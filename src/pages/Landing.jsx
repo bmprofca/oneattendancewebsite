@@ -1,492 +1,174 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { panelPath } from '../utils/panel';
+import React from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  FaClock,
-  FaUsers,
-  FaShieldAlt,
-  FaMobileAlt,
-  FaChartBar,
-  FaArrowRight,
-  FaPlayCircle,
-  FaCheckCircle,
-  FaStar,
-  FaRocket
-} from 'react-icons/fa';
+  FaArrowRight, FaBuilding, FaCalendarCheck, FaClock, FaGooglePlay, FaMapMarkerAlt,
+  FaMoneyBillWave, FaUserShield,
+} from "react-icons/fa";
+import SiteChrome from "../components/SiteChrome";
+import { pageClass } from "../content/WebsiteContent";
+import { panelPath } from "../utils/panel";
+
+const useCases = [
+  { icon: FaMapMarkerAlt, tint: "bg-blue-100 text-blue-700", title: "Field teams", text: "Supervisors can see GPS or QR attendance from people who are not at a single desk. The record still belongs to the company that enabled that method." },
+  { icon: FaBuilding, tint: "bg-violet-100 text-violet-700", title: "Office teams", text: "A fixed workplace can use IP or manual attendance, then review the same day beside leave and shift rules." },
+  { icon: FaClock, tint: "bg-amber-100 text-amber-700", title: "Shift work", text: "Morning, evening, and rotating shifts stay on one calendar so late arrivals and breaks are read against the shift that was assigned." },
+  { icon: FaCalendarCheck, tint: "bg-emerald-100 text-emerald-700", title: "Leave before payroll", text: "Approved leave sits next to attendance, so a payroll period is not closed while a request is still open." },
+  { icon: FaMoneyBillWave, tint: "bg-rose-100 text-rose-700", title: "Salary review", text: "Salary, payroll, and ledger screens give the owner a place to check figures before wages are paid or a report is shared." },
+  { icon: FaUserShield, tint: "bg-cyan-100 text-cyan-700", title: "More than one role", text: "Owners, managers, and employees do not need the same screen. Invitations and permissions decide who can change a record." },
+];
+
+const day = [
+  { time: "Start of day", title: "The shift opens", text: "Employees mark attendance with the method the company turned on. Managers see who is present, on leave, or still missing." },
+  { time: "During the day", title: "Exceptions stay visible", text: "A late clock-in, a break, or a leave request stays on the same workspace instead of moving into a separate spreadsheet." },
+  { time: "End of month", title: "Review, then pay", text: "Attendance, leave, and salary can be checked together before the company treats the payroll numbers as final." },
+];
 
 export default function LandingPage() {
-  const navigate = useNavigate();
-  const openPanel = (path) => {
-    window.location.assign(panelPath(path));
-  };
-  const isAuthenticated = false;
-
-  // Animation variants
-  const fadeInUp = {
-    initial: { opacity: 0, y: 60 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
-
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const scaleOnHover = {
-    whileHover: { scale: 1.05 },
-    whileTap: { scale: 0.95 }
-  };
-
-  const featureCards = [
-    {
-      icon: FaClock,
-      title: "Real-Time Tracking",
-      description: "Live clock-ins/outs with GPS & biometrics",
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-50",
-      iconColor: "text-blue-600"
-    },
-    {
-      icon: FaUsers,
-      title: "Multi-User Access",
-      description: "Admin, manager, employee dashboards",
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600"
-    },
-    {
-      icon: FaShieldAlt,
-      title: "Secure Data",
-      description: "JWT auth, encrypted reports, GDPR ready",
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-50",
-      iconColor: "text-purple-600"
-    },
-    {
-      icon: FaMobileAlt,
-      title: "Mobile App",
-      description: "Punch in from anywhere, anytime",
-      color: "from-orange-500 to-red-500",
-      bgColor: "bg-orange-50",
-      iconColor: "text-orange-600"
-    },
-    {
-      icon: FaChartBar,
-      title: "Analytics",
-      description: "Custom reports & productivity insights",
-      color: "from-indigo-500 to-purple-500",
-      bgColor: "bg-indigo-50",
-      iconColor: "text-indigo-600"
-    }
-  ];
-
-  const stats = [
-    { number: "10K+", label: "Active Teams", icon: FaUsers },
-    { number: "98%", label: "Customer Satisfaction", icon: FaStar },
-    { number: "24/7", label: "Support Available", icon: FaRocket }
-  ];
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100"
-    >
-      {/* Navbar with animation */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-        className="bg-white/80 backdrop-blur-md shadow-lg sticky top-0 z-50"
-      >
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <motion.div
-              className="flex items-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                OneAttendance
-              </h1>
-            </motion.div>
-            <div className="flex space-x-4 xsm:space-x-0 items-center">
-              <Link
-                to="/public-subscription"
-                className="hidden sm:inline-flex px-4 py-2 text-blue-600 font-semibold hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                View Pricing
-              </Link>
-              {isAuthenticated ? (
-                <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => openPanel('/home')}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg relative overflow-hidden group flex items-center gap-2"
-                >
-                  <span className="relative z-10">Go to Dashboard</span>
-                  <FaArrowRight className="relative z-10 text-sm group-hover:translate-x-1 transition-transform" />
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700"
-                    initial={{ x: "100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.button>
-              ) : (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => openPanel('/login')}
-                    className="px-6 py-2 text-blue-600 font-semibold hover:bg-blue-50 rounded-lg transition-all duration-200 relative overflow-hidden group"
-                  >
-                    <span className="relative z-10">Login</span>
-                    <motion.div
-                      className="absolute inset-0 bg-blue-100"
-                      initial={{ scale: 0, opacity: 0 }}
-                      whileHover={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => openPanel('/signup')}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg relative overflow-hidden group"
-                  >
-                    <span className="hidden xsm:inline">Free</span>
-                    <span className="xsm:hidden">Get Started Free</span>
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700"
-                      initial={{ x: "100%" }}
-                      whileHover={{ x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
-      {/* Hero Section */}
-      <section className="py-20 lg:py-32 overflow-hidden">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <motion.h1
-              className="text-5xl lg:text-7xl font-bold mb-6"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Simplify Attendance
-              </span>
-              <motion.span
-                className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent"
-                animate={{
-                  backgroundPosition: ["0%", "100%", "0%"],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                style={{ backgroundSize: "200% auto" }}
-              >
-                Management
-              </motion.span>
-            </motion.h1>
-
-            <motion.p
-              className="text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Track employee attendance effortlessly with real-time insights, biometric integration, and automated reports.
-              Focus on growth, not clock-watching.
-            </motion.p>
-
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto"
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-            >
-              {isAuthenticated ? (
-                <motion.button
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.05, boxShadow: "0 25px 30px -12px rgba(0, 0, 0, 0.25)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => openPanel('/home')}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg rounded-xl shadow-2xl flex items-center gap-2 group relative overflow-hidden"
-                >
-                  <span className="relative z-10">Go to Dashboard</span>
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="relative z-10"
-                  >
-                    <FaArrowRight />
-                  </motion.div>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700"
-                    initial={{ x: "100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.button>
-              ) : (
-                <motion.button
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.05, boxShadow: "0 25px 30px -12px rgba(0, 0, 0, 0.25)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => openPanel('/login')}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg rounded-xl shadow-2xl flex items-center gap-2 group relative overflow-hidden"
-                >
-                  <span className="relative z-10">Start Free Trial</span>
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="relative z-10"
-                  >
-                    <FaArrowRight />
-                  </motion.div>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700"
-                    initial={{ x: "100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.button>
-              )}
-
-              <motion.button
-                variants={fadeInUp}
-                whileHover={{ scale: 1.05, backgroundColor: "#f9fafb" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/demo')}
-                className="px-8 py-4 border-2 border-gray-200 text-gray-800 font-semibold text-lg rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 group"
-              >
-                <FaPlayCircle className="text-blue-600 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-5 gap-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            {featureCards.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={{
-                  initial: { opacity: 0, y: 50 },
-                  animate: { opacity: 1, y: 0 }
-                }}
-                whileHover={{
-                  y: -10,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-                }}
-                className="group relative p-6 rounded-xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
-              >
-                <motion.div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, ${feature.color})`,
-                    filter: "blur(20px)",
-                    zIndex: -1
-                  }}
-                />
-                <div className={`w-20 h-20 mx-auto ${feature.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className={`w-10 h-10 ${feature.iconColor}`} />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-                <motion.div
-                  className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                  whileHover={{ x: 5 }}
-                >
-                  <FaArrowRight className="text-blue-600" />
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Stats Section */}
-          <motion.div
-            className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center"
-                whileHover={{ scale: 1.05 }}
-              >
-                <stat.icon className="w-12 h-12 mx-auto text-blue-600 mb-4" />
-                <motion.div
-                  className="text-4xl font-bold text-gray-900 mb-2"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 + index * 0.1 }}
-                >
-                  {stat.number}
-                </motion.div>
-                <p className="text-gray-600">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Footer */}
-      <motion.section
-        className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-center relative overflow-hidden"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-      >
-        {/* Animated background elements */}
+    <SiteChrome>
+      <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-blue-50 via-white to-emerald-50">
         <motion.div
-          className="absolute inset-0 opacity-10"
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%"],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          style={{
-            backgroundImage: "radial-gradient(circle at 30% 50%, white 0%, transparent 50%)",
-            backgroundSize: "100% 100%"
-          }}
+          className="pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-blue-300/40 blur-3xl"
+          animate={{ y: [0, 24, 0], x: [0, 12, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.h2
-            className="text-4xl lg:text-5xl font-bold mb-6"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            Ready to Transform Attendance?
-          </motion.h2>
-
-          <motion.p
-            className="text-xl mb-10 opacity-90"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 0.9 }}
-            transition={{ delay: 0.2 }}
-          >
-            Join 10,000+ teams saving hours weekly.
-          </motion.p>
-
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-          >
-            {isAuthenticated ? (
-              <motion.button
-                variants={fadeInUp}
-                whileHover={{ scale: 1.05, boxShadow: "0 30px 30px -15px rgba(0, 0, 0, 0.3)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => openPanel('/home')}
-                className="px-10 py-4 bg-white text-blue-600 font-bold text-lg rounded-xl shadow-2xl flex items-center justify-center gap-2 group"
+        <motion.div
+          className="pointer-events-none absolute right-0 top-24 h-64 w-64 rounded-full bg-emerald-300/40 blur-3xl"
+          animate={{ y: [0, -20, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className={`${pageClass} relative grid items-center gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24`}>
+          <div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand shadow-sm"
+            >
+              Workforce platform
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="mt-5 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl"
+            >
+              A clear record of who worked, who was away, and what payroll shows
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.16 }}
+              className="mt-5 max-w-xl text-lg leading-8 text-slate-600"
+            >
+              OneAttendance is for companies that need attendance, leave, shifts, and payroll in one workspace. The company chooses the attendance method. People with permission review the result before they rely on it.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24 }}
+              className="mt-8 flex flex-col gap-3 sm:flex-row"
+            >
+              <a href={panelPath("/signup")} className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark">
+                Create account <FaArrowRight className="text-xs" />
+              </a>
+              <a href="https://play.google.com/store/apps/details?id=in.onesaas.attendance" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand bg-white px-5 py-3 text-sm font-semibold text-brand transition hover:bg-blue-50">
+                <FaGooglePlay /> Download the app
+              </a>
+              <Link to="/features" className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
+                Explore features
+              </Link>
+            </motion.div>
+          </div>
+          <div className="relative">
+            {[
+              { delay: 0.15, tint: "bg-brand", label: "Attendance", value: "Morning shift is open", note: "GPS, QR, IP, face, or manual" },
+              { delay: 0.28, tint: "bg-emerald-600", label: "Leave", value: "2 requests waiting", note: "Reviewed before payroll" },
+              { delay: 0.4, tint: "bg-violet-600", label: "Payroll", value: "Period ready to check", note: "Salary and attendance together" },
+            ].map((card, index) => (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: index === 0 ? 0 : 0 }}
+                transition={{ delay: card.delay, duration: 0.45 }}
+                className="mb-4 rounded-2xl border border-white/80 bg-white/90 p-5 shadow-lg shadow-slate-200/70 backdrop-blur"
               >
-                Go to Dashboard
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <FaArrowRight className="text-blue-600" />
+                <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 4 + index, repeat: Infinity, ease: "easeInOut" }}>
+                  <div className="flex items-center gap-3">
+                    <span className={`h-2.5 w-2.5 rounded-full ${card.tint}`} />
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{card.label}</p>
+                  </div>
+                  <p className="mt-3 text-lg font-semibold text-slate-950">{card.value}</p>
+                  <p className="mt-1 text-sm text-slate-500">{card.note}</p>
                 </motion.div>
-              </motion.button>
-            ) : (
-              <>
-                <motion.button
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.05, boxShadow: "0 30px 30px -15px rgba(0, 0, 0, 0.3)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => openPanel('/signup')}
-                  className="px-10 py-4 bg-white text-blue-600 font-bold text-lg rounded-xl shadow-2xl flex items-center justify-center gap-2 group"
-                >
-                  Create Free Account
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <FaCheckCircle className="text-green-500" />
-                  </motion.div>
-                </motion.button>
-
-                <motion.button
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.2)" }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => openPanel('/login')}
-                  className="px-10 py-4 font-semibold text-lg rounded-xl border-2 border-white"
-                >
-                  Login Now
-                </motion.button>
-              </>
-            )}
-          </motion.div>
-        </div>
-      </motion.section>
-
-      <footer className="bg-slate-950 text-slate-300">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm">© 2026 OneAttendance. All rights reserved.</p>
-            <nav aria-label="Legal and product links" className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-              <Link to="/public-subscription" className="hover:text-white transition-colors">
-                Pricing
-              </Link>
-              <Link to="/privacy-policy" className="hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
-              <Link to="/data-deletion" className="hover:text-white transition-colors">
-                Data Deletion
-              </Link>
-              <Link to="/terms" className="hover:text-white transition-colors">
-                Terms of Service
-              </Link>
-            </nav>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </footer>
-    </motion.div>
+      </section>
+
+      <section className={`${pageClass} py-16 lg:py-20`}>
+        <div className="max-w-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">Use cases</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Where teams use it</h2>
+          <p className="mt-3 text-base leading-7 text-slate-600">The same product covers a shop floor, a field crew, and an office. What changes is the attendance method and who is allowed to edit the records.</p>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {useCases.map((item, index) => (
+            <motion.article
+              key={item.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ delay: index * 0.05 }}
+              className="rounded-2xl border border-slate-200 bg-white p-6"
+            >
+              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${item.tint}`}>
+                <item.icon />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-slate-950">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
+      <section className="border-y border-slate-200 bg-slate-50">
+        <div className={`${pageClass} py-16`}>
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-950">A working day in the product</h2>
+          <ol className="mt-8 grid gap-4 md:grid-cols-3">
+            {day.map((item, index) => (
+              <motion.li
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08 }}
+                className="rounded-2xl border border-slate-200 bg-white p-6"
+              >
+                <p className="text-sm font-semibold text-brand">{item.time}</p>
+                <h3 className="mt-3 text-lg font-semibold text-slate-950">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              </motion.li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className={`${pageClass} py-16`}>
+        <div className="grid items-center gap-8 rounded-3xl bg-brand px-6 py-12 text-white sm:px-10 lg:grid-cols-[1.4fr_0.6fr]">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-tight">See the feature list, then start a company</h2>
+            <p className="mt-3 max-w-xl text-white/85">Attendance methods, roles, leave, payroll, and the mobile app are described on the features page. Pricing follows the size of the team.</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link to="/features" className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-brand transition hover:bg-blue-50">
+              View features <FaArrowRight className="text-xs" />
+            </Link>
+            <Link to="/pricing" className="inline-flex items-center justify-center rounded-lg border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">See pricing</Link>
+          </div>
+        </div>
+      </section>
+    </SiteChrome>
   );
 }

@@ -31,8 +31,14 @@
   }
 
   body {
-    @apply h-full bg-slate-50 text-slate-900 antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply h-full bg-white text-slate-900 antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  a,
+  a:hover,
+  a:focus {
+    text-decoration: none;
   }
 
   /* Dark mode body styles */

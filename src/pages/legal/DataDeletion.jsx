@@ -1,63 +1,188 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaCheckCircle, FaEnvelope, FaInfoCircle, FaSpinner, FaTrashAlt, FaUserSlash } from "react-icons/fa";
-import { panelPath } from "../../utils/panel";
+import { FaCheckCircle, FaRedo, FaSpinner } from "react-icons/fa";
 import apiCall from "../../utils/api";
-import LegalLayout, { LegalHeading } from "./LegalLayout";
+import LegalPage from "./LegalPage";
+
+const emptyForm = { mobile: "", email: "", remark: "", captchaCode: "" };
 
 const DataDeletion = () => {
-  const user = null;
-  const navigate = useNavigate();
-  const [step, setStep] = useState("confirm");
-  const [confirmation, setConfirmation] = useState("");
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [form, setForm] = useState(emptyForm);
+  const [captcha, setCaptcha] = useState(null);
+  const [captchaLoading, setCaptchaLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => { if (user?.email) setEmail(user.email); }, [user?.email]);
-
-  const requestOtp = async () => {
+  const loadCaptcha = async () => {
+    setCaptchaLoading(true);
     setError("");
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail || normalizedEmail !== user?.email?.trim().toLowerCase()) { setError("Enter the email address currently linked to your account."); return; }
-    setBusy(true);
     try {
-      const response = await apiCall("/users/delete/request-otp", "POST", { email: normalizedEmail });
+      const response = await apiCall("/data-deletion/captcha", "GET", null, null, { skipUnauthorizedRedirect: true });
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Unable to send the deletion code.");
-      setStep("otp");
-    } catch (requestError) { setError(requestError.message || "Unable to send the deletion code. Try again."); }
-    finally { setBusy(false); }
+      if (!response.ok || !data.success) throw new Error(data.message || "Unable to load captcha.");
+      setCaptcha(data.data);
+      setForm((current) => ({ ...current, captchaCode: "" }));
+    } catch (loadError) {
+      setCaptcha(null);
+      setError(loadError.message || "Unable to load captcha.");
+    } finally {
+      setCaptchaLoading(false);
+    }
   };
 
-  const confirmDeletion = async () => {
+  useEffect(() => { loadCaptcha(); }, []);
+
+  const updateField = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+  };
+
+  const submitRequest = async (event) => {
+    event.preventDefault();
     setError("");
-    if (otp.length !== 6) { setError("Enter the six-digit code sent to your email."); return; }
+    const mobile = form.mobile.trim();
+    const email = form.email.trim();
+    const remark = form.remark.trim();
+    if (!mobile) {
+      setError("Mobile number is required.");
+      return;
+    }
+    if (!remark) {
+      setError("Description is required.");
+      return;
+    }
+    if (!captcha?.captcha_id || form.captchaCode.trim().length < 5) {
+      setError("Enter the captcha.");
+      return;
+    }
     setBusy(true);
     try {
-      const response = await apiCall("/users/delete/confirm", "DELETE", { email: email.trim().toLowerCase(), otp });
+      const response = await apiCall("/data-deletion/request", "POST", {
+        mobile,
+        email,
+        remark,
+        captcha_id: captcha.captcha_id,
+        captcha_code: form.captchaCode.trim(),
+      }, null, { skipUnauthorizedRedirect: true });
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Unable to delete the account.");
-      localStorage.removeItem("token");
-      localStorage.removeItem("company");
+      if (!response.ok || !data.success) throw new Error(data.message || "Unable to submit the request.");
       setSuccess(true);
-    } catch (requestError) { setError(requestError.message || "Unable to delete the account. Try again."); }
-    finally { setBusy(false); }
+      setForm(emptyForm);
+    } catch (submitError) {
+      setError(submitError.message || "Unable to submit the request.");
+      loadCaptcha();
+    } finally {
+      setBusy(false);
+    }
   };
-
-  const sections = [{ id: "overview", label: "Overview" }, { id: "signed-in", label: "Signed-in deletion" }, { id: "social", label: "Connected accounts" }, { id: "contact", label: "Need help" }];
 
   return (
-    <LegalLayout icon={FaTrashAlt} accent={{ tint: "bg-red-100", text: "text-red-600" }} title="Data Deletion" description="Delete your OneAttendance account through a verified, authenticated request." updated="September 21, 2026" sections={sections}>
-      <section id="overview" className="rounded-xl border border-blue-100 bg-blue-50 p-5"><LegalHeading icon={FaInfoCircle}>What deletion does</LegalHeading><p className="text-blue-900">The account deletion workflow deactivates your user account and active sessions, marks your employee memberships deleted, and removes your access to OneAttendance. It is irreversible. Users who own an active company must transfer ownership first because company records and other members depend on that workspace.</p></section>
-
-      <section id="signed-in"><LegalHeading icon={FaUserSlash}>Delete while signed in</LegalHeading>{!user ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5"><p>You must be signed in on the panel to start an account deletion request. After signing in, open this page again to verify your email and request the one-time code. You can also delete the account from Settings after you sign in.</p><a href={panelPath("/data-deletion")} className="mt-4 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700">Sign in to delete your account</a></div> : success ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900" role="status"><FaCheckCircle className="mb-3 text-2xl text-emerald-600" /><h3 className="font-bold">Account deletion completed</h3><p className="mt-1">Your account and active sessions have been deactivated. You can return to the sign-in page.</p><button type="button" onClick={() => navigate("/login", { replace: true })} className="mt-4 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800">Continue to sign in</button></div> : <div className="rounded-xl border border-red-100 bg-red-50/50 p-5"><div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold text-red-700" aria-label={`Deletion step ${step === "confirm" ? "1" : step === "email" ? "2" : "3"} of 3`}><span className={step === "confirm" ? "rounded-full bg-red-600 px-2 py-1 text-white" : "rounded-full bg-red-100 px-2 py-1"}>1 Confirm</span><span className="text-red-300">/</span><span className={step === "email" ? "rounded-full bg-red-600 px-2 py-1 text-white" : "rounded-full bg-red-100 px-2 py-1"}>2 Email</span><span className="text-red-300">/</span><span className={step === "otp" ? "rounded-full bg-red-600 px-2 py-1 text-white" : "rounded-full bg-red-100 px-2 py-1"}>3 OTP</span></div>{error && <p className="mb-4 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700" role="alert">{error}</p>}{step === "confirm" && <form onSubmit={(event) => { event.preventDefault(); if (confirmation === "DELETE") setStep("email"); }} className="space-y-4"><p className="text-sm text-red-900">This permanently removes access and cannot be undone. Type <strong>DELETE</strong> to continue.</p><label className="block text-sm font-semibold text-slate-700" htmlFor="delete-confirmation">Confirmation</label><input id="delete-confirmation" value={confirmation} onChange={(event) => setConfirmation(event.target.value.toUpperCase())} className="w-full rounded-lg border border-red-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-400" autoComplete="off" /><button type="submit" disabled={confirmation !== "DELETE"} className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">Continue</button></form>}{step === "email" && <form onSubmit={(event) => { event.preventDefault(); requestOtp(); }} className="space-y-4"><label className="block text-sm font-semibold text-slate-700" htmlFor="delete-email">Confirm your account email</label><input id="delete-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-lg border border-red-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-400" autoComplete="email" required /><div className="flex flex-wrap gap-3"><button type="button" onClick={() => setStep("confirm")} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Back</button><button type="submit" disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-50">{busy && <FaSpinner className="animate-spin" />} {busy ? "Sending code..." : "Send deletion code"}</button></div></form>}{step === "otp" && <form onSubmit={(event) => { event.preventDefault(); confirmDeletion(); }} className="space-y-4"><p className="text-sm text-slate-600">Enter the six-digit code sent to <strong>{email}</strong>.</p><label className="block text-sm font-semibold text-slate-700" htmlFor="delete-otp">One-time code</label><input id="delete-otp" value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} className="w-full rounded-lg border border-red-200 bg-white px-3 py-3 text-center font-mono text-xl tracking-[0.45em] outline-none focus:ring-2 focus:ring-red-400" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required /><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { setStep("email"); setOtp(""); setError(""); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Change email</button><button type="submit" disabled={busy || otp.length !== 6} className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-800 disabled:opacity-50">{busy && <FaSpinner className="animate-spin" />} {busy ? "Deleting account..." : "Delete my account"}</button></div><button type="button" onClick={requestOtp} disabled={busy} className="text-sm font-semibold text-red-700 hover:underline disabled:opacity-50">Resend code</button></form>}</div>}</section>
-
-      <section id="social"><LegalHeading icon={FaInfoCircle}>Connected sign-in accounts</LegalHeading><p>If you used a supported social sign-in provider, you can also remove OneAttendance from that provider&apos;s connected-app settings. That revokes the provider connection; to delete the OneAttendance account and its server-side records, complete the authenticated workflow above.</p></section>
-      <section id="contact" className="rounded-xl border border-slate-200 bg-slate-50 p-5"><LegalHeading icon={FaEnvelope}>Need help?</LegalHeading><p>Contact <a className="font-semibold text-blue-600 hover:underline" href="mailto:support@onesaas.in">support@onesaas.in</a> from your registered email. Never include an OTP or password in your message.</p></section>
-    </LegalLayout>
+    <LegalPage slug="data-deletion">
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold text-slate-950">Request data deletion</h2>
+        <p className="mb-5 mt-2 text-sm leading-7 text-slate-600 sm:text-base">Enter the mobile number on the account and a short description. Email is optional. This form sends a request for review. It does not delete the account immediately.</p>
+        {success ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900" role="status">
+            <FaCheckCircle className="mb-3 text-2xl text-emerald-600" />
+            <h3 className="font-bold">Deletion request submitted</h3>
+            <p className="mt-1">We received your request and will review it using the mobile number you provided.</p>
+            <button
+              type="button"
+              onClick={() => { setSuccess(false); loadCaptcha(); }}
+              className="mt-4 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800"
+            >
+              Submit another request
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={submitRequest} className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+            {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700" role="alert">{error}</p>}
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="deletion-mobile">Mobile number <span className="text-red-500">*</span></label>
+              <input
+                id="deletion-mobile"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                value={form.mobile}
+                onChange={updateField("mobile")}
+                placeholder="10-digit mobile number"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="deletion-email">Email</label>
+              <input
+                id="deletion-email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={updateField("email")}
+                placeholder="Optional"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="deletion-remark">Description <span className="text-red-500">*</span></label>
+              <textarea
+                id="deletion-remark"
+                rows={4}
+                maxLength={1000}
+                required
+                value={form.remark}
+                onChange={updateField("remark")}
+                placeholder="Why you want this data deleted"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="deletion-captcha">Captcha</label>
+              <div className="mb-3 flex items-center gap-3">
+                {captchaLoading ? (
+                  <div className="flex h-[58px] w-[180px] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-400">
+                    <FaSpinner className="animate-spin" />
+                  </div>
+                ) : captcha?.image ? (
+                  <img
+                    src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(captcha.image)}`}
+                    alt="Captcha"
+                    className="h-[58px] rounded-lg border border-slate-200"
+                  />
+                ) : (
+                  <div className="flex h-[58px] items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">Captcha unavailable</div>
+                )}
+                <button
+                  type="button"
+                  onClick={loadCaptcha}
+                  disabled={captchaLoading || busy}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <FaRedo className={captchaLoading ? "animate-spin" : ""} />
+                  Refresh
+                </button>
+              </div>
+              <input
+                id="deletion-captcha"
+                value={form.captchaCode}
+                onChange={(event) => setForm((current) => ({ ...current, captchaCode: event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5) }))}
+                autoComplete="off"
+                required
+                placeholder="Enter the characters"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-mono tracking-[0.3em] outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={busy || captchaLoading || !captcha}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy && <FaSpinner className="animate-spin" />}
+              {busy ? "Submitting..." : "Submit request"}
+            </button>
+          </form>
+        )}
+      </section>
+    </LegalPage>
   );
 };
 
