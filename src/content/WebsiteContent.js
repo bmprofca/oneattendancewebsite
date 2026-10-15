@@ -19,6 +19,7 @@ const WebsiteContentContext = createContext(null);
 export function WebsiteContentProvider({ children }) {
   const [contact, setContact] = useState(FALLBACK_CONTACT);
   const [pages, setPages] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -32,6 +33,7 @@ export function WebsiteContentProvider({ children }) {
         if (!active) return;
         setContact({ ...FALLBACK_CONTACT, ...(result.data?.contact || {}) });
         setPages(result.data?.pages || []);
+        setFaqs(Array.isArray(result.data?.faqs) ? result.data.faqs : []);
       } catch (loadError) {
         if (active) setError(loadError.message || "Unable to load website content");
       } finally {
@@ -41,7 +43,7 @@ export function WebsiteContentProvider({ children }) {
     return () => { active = false; };
   }, []);
 
-  const value = useMemo(() => ({ contact, pages, loading, error }), [contact, pages, loading, error]);
+  const value = useMemo(() => ({ contact, pages, faqs, loading, error }), [contact, pages, faqs, loading, error]);
   return <WebsiteContentContext.Provider value={value}>{children}</WebsiteContentContext.Provider>;
 }
 

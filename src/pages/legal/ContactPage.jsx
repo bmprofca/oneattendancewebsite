@@ -1,6 +1,6 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { FaEnvelope, FaHandshake, FaMapMarkerAlt, FaPhoneAlt } from "react-icons/fa";
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { FaChevronDown, FaEnvelope, FaHandshake, FaMapMarkerAlt, FaPhoneAlt } from "react-icons/fa";
 import { useWebsiteContent } from "../../content/WebsiteContent";
 import LegalPage from "./LegalPage";
 
@@ -12,8 +12,51 @@ const cards = [
   { key: "address", icon: FaMapMarkerAlt, tint: "bg-amber-100 text-amber-700", label: "Office" },
 ];
 
+function SupportFaqs({ faqs }) {
+  const [openId, setOpenId] = useState(null);
+  if (!faqs.length) return null;
+  return (
+    <div className="mt-10">
+      <h2 className="text-lg font-bold text-slate-800">Frequently asked questions</h2>
+      <div className="mt-4 divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        {faqs.map((faq) => {
+          const open = openId === faq.id;
+          return (
+            <div key={faq.id}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-3 px-5 py-4 text-left"
+                aria-expanded={open}
+                onClick={() => setOpenId(open ? null : faq.id)}
+              >
+                <span className="flex-1 font-semibold text-slate-800">{faq.question}</span>
+                <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.22 }}>
+                  <FaChevronDown className="text-slate-400" />
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {open ? (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.24, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <p className="px-5 pb-4 text-sm leading-6 text-slate-600">{faq.answer}</p>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ContactPage() {
-  const { contact } = useWebsiteContent();
+  const { contact, faqs } = useWebsiteContent();
   const values = {
     email: contact.email,
     phone: contact.phone,
@@ -43,6 +86,7 @@ export default function ContactPage() {
           </motion.div>
         ))}
       </div>
+      <SupportFaqs faqs={faqs || []} />
     </LegalPage>
   );
 }
